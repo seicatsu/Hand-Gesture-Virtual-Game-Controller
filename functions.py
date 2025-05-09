@@ -22,7 +22,6 @@ def calculate_angle(a, b, c):
     angle_deg = math.degrees(angle_rad)
     return angle_deg
 
-
 def get_extended_fingers_by_angle(hand_landmarks):
     """
     Detects extended fingers using joint angles.
@@ -55,4 +54,3 @@ def get_extended_fingers_by_angle(hand_landmarks):
     finger_states = [angle > 160 for angle in angles]  # You can tune this threshold
 
     return finger_states  # [thumb, index, middle, ring, pinky]
-

@@ -1,8 +1,7 @@
 import cv2
 import mediapipe as mp
 import pyautogui
-from functions import get_extended_fingers_by_angle
-
+from functions import get_extended_fingers_by_angle  # new angle-based function
 
 cap = cv2.VideoCapture(0)
 
@@ -23,44 +22,38 @@ while True:
             drawing.draw_landmarks(frm, hand_landmarks, hands.HAND_CONNECTIONS)
 
             hand_label = handedness.classification[0].label
-            fingers = count_fingers(hand_landmarks)
+            finger_states = get_extended_fingers_by_angle(hand_landmarks)  # [thumb, index, middle, ring, pinky]
+            extended_count = sum(finger_states)
 
             if hand_label == 'Right':
-                if fingers < 1:
+                # Fist = Hold bow (mouse down)
+                if extended_count == 0:
                     cv2.putText(frm, "RH: Holding Bow", (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
                     if not holding_click:
                         pyautogui.mouseDown(button='left')
                         holding_click = True
                 else:
-                    # Any other gesture = release
                     if holding_click:
                         pyautogui.mouseUp(button='left')
                         holding_click = False
 
             elif hand_label == 'Left':
-                if fingers == 1:
+                # Only index extended = Block
+                if finger_states == [False, True, False, False, False]:
                     cv2.putText(frm, "LH: Blocking", (10, 100), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 0, 0), 2)
                     pyautogui.click(button='right')  # simulate right-click
 
-            if hand_label == 'Left':
-                # Get fingertip landmark (index finger)
+                # Move cursor using index finger (regardless of other fingers)
                 index_finger_tip = hand_landmarks.landmark[8]
-
-                # Convert normalized coordinates to screen size
                 screen_width, screen_height = pyautogui.size()
                 x = int(index_finger_tip.x * screen_width)
                 y = int(index_finger_tip.y * screen_height)
-
-                # Move the cursor
                 pyautogui.moveTo(x, y)
-
-                # Optional: show text overlay
-                cv2.putText(frm, "LEFT: Moving Cursor", (10, 100), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 255), 2)
+                cv2.putText(frm, "LH: Moving Cursor", (10, 140), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 255), 2)
 
     else:
-        # Only runs if no hands are detected at all
+        # No hands detected
         cv2.putText(frm, "NO HANDS - IDLE", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (128, 128, 128), 2)
-
 
     cv2.imshow("window", frm)
 
