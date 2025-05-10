@@ -5,6 +5,7 @@ import vgamepad as vg
 from collections import deque
 import time
 
+
 # Initialize virtual Xbox 360 controller
 gamepad = vg.VX360Gamepad()
 
