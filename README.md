@@ -13,8 +13,7 @@
 <hr>
 
 <h2>📷 Demo</h2>
-<p><em>Insert a GIF or video of your system in action here.</em></p>
-
+[![Watch the Demo](https://img.youtube.com/vi/Djeiv0lhsG4/0.jpg)](https://www.youtube.com/watch?v=Djeiv0lhsG4)
 <hr>
 
 <h2>🧠 Features</h2>
