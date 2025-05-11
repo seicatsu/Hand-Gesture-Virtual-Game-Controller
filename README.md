@@ -12,9 +12,12 @@
 
 <hr>
 
-<h2>📷 Demo</h2>
-[![Watch the Demo](https://img.youtube.com/vi/Djeiv0lhsG4/0.jpg)](https://www.youtube.com/watch?v=Djeiv0lhsG4)
-<hr>
+
+<p align="center">
+  <a href="https://www.youtube.com/watch?v=Djeiv0lhsG4" target="_blank">
+    <img src="https://img.youtube.com/vi/Djeiv0lhsG4/0.jpg" alt="Watch the demo" width="600">
+  </a>
+</p>
 
 <h2>🧠 Features</h2>
 
