@@ -1,36 +1,41 @@
 import math
+import numpy as np
 
 def calculate_angle(a, b, c):
-    """
-    Returns angle (in degrees) between 3 points (in 2D or 3D).
-    b is the vertex.
-    """
-    ba = [a.x - b.x, a.y - b.y, a.z - b.z]
-    bc = [c.x - b.x, c.y - b.y, c.z - b.z]
 
-    # Dot product and magnitude
-    dot_product = sum(i * j for i, j in zip(ba, bc))
-    magnitude_ba = math.sqrt(sum(i * i for i in ba))
-    magnitude_bc = math.sqrt(sum(i * i for i in bc))
+    ba = np.array([a.x - b.x, a.y - b.y, a.z - b.z])
+    bc = np.array([c.x - b.x, c.y - b.y, c.z - b.z])
 
-    if magnitude_ba * magnitude_bc == 0:
-        return 0
+    dot_product = np.dot(ba, bc)
+    magnitude = np.linalg.norm(ba) * np.linalg.norm(bc)
 
-    # Clamp value for acos
-    cos_angle = max(min(dot_product / (magnitude_ba * magnitude_bc), 1.0), -1.0)
-    angle_rad = math.acos(cos_angle)
-    angle_deg = math.degrees(angle_rad)
-    return angle_deg
+    if magnitude == 0:
+        return 0.0
 
-def get_extended_fingers_by_angle(hand_landmarks):
-    """
-    Detects extended fingers using joint angles.
-    Returns a list: [thumb, index, middle, ring, pinky] as True/False.
-    """
+    cos_angle = np.clip(dot_product / magnitude, -1.0, 1.0)
+    return math.degrees(math.acos(cos_angle))
+
+def is_thumb_extended(lm):
+    tip = lm[4]  # Thumb tip
+    base = lm[5]  # Index MCP
+
+    dx = tip.x - base.x
+    dy = tip.y - base.y
+    distance = math.hypot(dx, dy)
+
+    return distance > 0.1  # Threshold, tune based on test
+
+
+
+
+def get_extended_fingers_by_angle(hand_landmarks, threshold=165):
     lm = hand_landmarks.landmark
     angles = []
 
-    # Index: MCP–PIP–TIP
+    # Replace thumb angle with distance check
+    thumb_extended = is_thumb_extended(lm)
+
+    # Index
     angle_index = calculate_angle(lm[5], lm[6], lm[8])
     angles.append(angle_index)
 
@@ -46,11 +51,5 @@ def get_extended_fingers_by_angle(hand_landmarks):
     angle_pinky = calculate_angle(lm[17], lm[18], lm[20])
     angles.append(angle_pinky)
 
-    # Thumb: MCP–IP–TIP (or CMC–MCP–TIP)
-    angle_thumb = calculate_angle(lm[2], lm[3], lm[4])
-    angles.insert(0, angle_thumb)
-
-    # Thresholding
-    finger_states = [angle > 160 for angle in angles]  # You can tune this threshold
-
-    return finger_states  # [thumb, index, middle, ring, pinky]
+    finger_states = [thumb_extended] + [angle > threshold for angle in angles]
+    return finger_states

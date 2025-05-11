@@ -19,7 +19,6 @@ hands = mp.solutions.hands
 
 # Movement tracking
 prev_x, prev_y = None, None
-prev_time = time.time()  # For FPS calculation
 
 with hands.Hands(max_num_hands=2,
                  min_detection_confidence=0.5,
@@ -37,6 +36,13 @@ with hands.Hands(max_num_hands=2,
 
                 hand_label = handedness.classification[0].label
                 finger_states = get_extended_fingers_by_angle(hand_landmarks)
+
+                labels = ["Thumb", "Index", "Middle", "Ring", "Pinky"]
+                for i, state in enumerate(finger_states):
+                    color = (0, 255, 0) if state else (0, 0, 255)
+                    cv2.putText(frm, f"{labels[i]}: {'Up' if state else 'Down'}", (400, 30 + i * 20),
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 1)
+
                 extended_count = sum(finger_states)
 
                 if hand_label == 'Right':
@@ -50,12 +56,26 @@ with hands.Hands(max_num_hands=2,
 
                 elif hand_label == 'Left':
                     # Block gesture = only index extended
-                    if finger_states == [False, True, False, False, False]:
+                    '''if finger_states == [False, True, False, False, False]:
                         gamepad.left_trigger(value=255)
                         cv2.putText(frm, "LH: Blocking", (10, 100), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 0, 0), 2)
                     else:
                         gamepad.left_trigger(value=0)
-                    gamepad.update()
+                    gamepad.update()'''
+
+                    # MOVE FORWARD: index + middle
+                    if finger_states == [False, True, True, False, False]:
+                        gamepad.left_joystick(x_value=0, y_value=32767)
+                        cv2.putText(frm, "LH: Moving Forward", (10, 140), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
+
+                    # MOVE BACKWARD: thumb + index
+                    elif finger_states == [True, True, False, False, False]:
+                        gamepad.left_joystick(x_value=0, y_value=-32767)
+                        cv2.putText(frm, "LH: Moving Backward", (10, 140), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 165, 255),
+                                    2)
+
+                    else:
+                        gamepad.left_joystick(x_value=0, y_value=0)
 
                     # Control camera with left index finger
                     index_tip = hand_landmarks.landmark[8]
@@ -93,6 +113,7 @@ with hands.Hands(max_num_hands=2,
             gamepad.update()
             cv2.putText(frm, "NO HANDS - IDLE", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (128, 128, 128), 2)
 
+        cv2.imshow("camera", frm)
 
         if cv2.waitKey(1) == 27:  # ESC key to exit
             break
